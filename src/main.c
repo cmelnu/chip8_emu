@@ -19,12 +19,6 @@ int main (int argc, char** argv)
 
     printf("%x\n", chip8_keyboard_map(keyboard_map, 0x01));
 
-    chip8_keyboard_down(&chip8.keyboard, 0x0f);
-    chip8_keyboard_up(&chip8.keyboard, 0x0f);
-
-    bool is_down = chip8_keyboard_is_down(&chip8.keyboard, 0x0f);
-    printf("%i\n", (int) is_down);
-
     SDL_Init(SDL_INIT_EVERYTHING);
 
     SDL_Window* window = SDL_CreateWindow(
