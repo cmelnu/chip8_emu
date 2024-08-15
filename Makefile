@@ -2,7 +2,7 @@
 INCLUDES= -I ./include
 FLAGS= -g
 
-OBJECTS=./build/memory.o ./build/registers.o
+OBJECTS=./build/memory.o ./build/registers.o ./build/stack.o ./build/keyboard.o ./build/chip8.o
 
 all: ${OBJECTS}
 	gcc $(FLAGS) $(INCLUDES) ./src/main.c ${OBJECTS} -lSDL2 -o ./bin/main
@@ -13,5 +13,14 @@ all: ${OBJECTS}
 ./build/registers.o:src/registers.c
 	gcc $(FLAGS) $(INCLUDES) ./src/registers.c -c -o ./build/registers.o
 
+./build/stack.o:src/stack.c
+	gcc $(FLAGS) $(INCLUDES) ./src/stack.c -c -o ./build/stack.o
+
+./build/keyboard.o:src/keyboard.c
+	gcc $(FLAGS) $(INCLUDES) ./src/keyboard.c -c -o ./build/keyboard.o
+
+./build/chip8.o:src/chip8.c
+	gcc $(FLAGS) $(INCLUDES) ./src/chip8.c -c -o ./build/chip8.o
+
 clean:
-	rm -rf build/*
+	rm -rf build/* dependency_graph*
