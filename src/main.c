@@ -1,8 +1,11 @@
 
 #include <SDL2/SDL_events.h>
+#include <memory.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include "chip8.h"
 #include "keyboard.h"
 
@@ -16,6 +19,11 @@ int main (int argc, char** argv)
 {
     struct chip8 chip8;
     chip8_init(&chip8);
+
+    chip8.registers.delay_timer = 255;
+    chip8.registers.sound_timer = 30;
+
+    chip8_screen_draw_sprite(&chip8.screen, 0, 0, &chip8.memory.memory[0x00], 5);
 
     printf("%x\n", chip8_keyboard_map(keyboard_map, 0x01));
 
@@ -71,15 +79,37 @@ int main (int argc, char** argv)
         SDL_RenderClear(renderer);
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 0);
 
-        SDL_Rect r;
+        for (int x = 0; x < CHIP8_WIDTH; x++)
+        {
+            for (int y = 0; y < CHIP8_HEIGHT; y++)
+            {
+                if (chip8_screen_is_set(&chip8.screen, x, y))
+                {
+                    SDL_Rect r;
+                    r.x = x * CHIP8_WINDOW_MULTIPLIER;
+                    r.y = y * CHIP8_WINDOW_MULTIPLIER;
+                    r.w = CHIP8_WINDOW_MULTIPLIER;
+                    r.h = CHIP8_WINDOW_MULTIPLIER;
+                    SDL_RenderFillRect(renderer, &r);
+                }
+            }
+        }
 
-        r.x = 0;
-        r.y = 0;
-        r.w = 40;
-        r.h = 40;
-
-        SDL_RenderFillRect(renderer, &r);
         SDL_RenderPresent(renderer);
+
+        if (chip8.registers.delay_timer > 0)
+        {
+            usleep(100);
+            chip8.registers.delay_timer -= 1;
+            printf("Delay!!!\n");
+        }
+
+        if (chip8.registers.sound_timer > 0)
+        {
+            printf("\a");
+            fflush(stdout);
+            chip8.registers.sound_timer -= 1;
+        }
     }
 
 out:
