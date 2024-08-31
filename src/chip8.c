@@ -156,7 +156,8 @@ static void chip8_exec_extended_F(struct chip8* chip8, unsigned short opcode)
 
         // LD Vx, K (Fx0A): Wait for a key press, store the value of the key in Vx.
         case 0x0A:
-            chip8->registers.V[x] = chip8_wait_for_key_press(chip8);
+            char pressed_key = chip8_wait_for_key_press(chip8);
+            chip8->registers.V[x] = pressed_key;
         break;
 
         // LD DT, Vx (Fx15): Set delay timer = Vx.
@@ -257,7 +258,7 @@ static void chip8_exec_extended (struct chip8* chip8, unsigned short opcode)
 
         //LD Vx, byte (6xkk): Puts the value kk into register Vx
         case 0x6000:
-            chip8->registers.V[x] == kk;
+            chip8->registers.V[x] = kk;
         break;
 
         //ADD Vx, byte (7xkk): Adds the value kk to the value of register Vx, then stores the result in Vx.
