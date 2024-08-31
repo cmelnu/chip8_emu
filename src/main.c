@@ -17,15 +17,43 @@ const char keyboard_map[CHIP8_TOTAL_KEYS] = {
 
 int main (int argc, char** argv)
 {
+
+    if (argc < 2)
+    {
+        printf("You must provide a file to load\n");
+        return -1;
+    }
+
+    const char* filename = argv[1];
+
+    printf("The filename to load is: %s \n", filename);
+
+    FILE* f = fopen(filename, "rb");
+
+    if (!f)
+    {
+        printf ("Failed to open the file \n");
+        return -1;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    fseek (f, 0, SEEK_SET);
+
+    char buf[size];
+
+    int res = fread(buf, size, 1, f);
+
+    if (res != 1)
+    {
+        printf("Failed to read from file \n");
+        return -1;
+    }
+
     struct chip8 chip8;
-    chip8_init(&chip8);
-
-    chip8.registers.delay_timer = 255;
-    chip8.registers.sound_timer = 30;
-
-    chip8_screen_draw_sprite(&chip8.screen, 0, 0, &chip8.memory.memory[0x00], 5);
-
-    printf("%x\n", chip8_keyboard_map(keyboard_map, 0x01));
+    chip8_init (&chip8);
+    chip8_load (&chip8, buf, size);
+    chip8_keyboard_set_map(&chip8.keyboard, keyboard_map);
 
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -53,7 +81,7 @@ int main (int argc, char** argv)
                 case SDL_KEYDOWN:
                 {
                     char key = event.key.keysym.sym;
-                    int vkey = chip8_keyboard_map(keyboard_map, key);
+                    int vkey = chip8_keyboard_map(&chip8.keyboard, key);
                     if (vkey != -1)
                     {
                         chip8_keyboard_down(&chip8.keyboard, vkey);
@@ -64,7 +92,7 @@ int main (int argc, char** argv)
                 case SDL_KEYUP:
                 {
                     char key = event.key.keysym.sym;
-                    int vkey = chip8_keyboard_map(keyboard_map, key);
+                    int vkey = chip8_keyboard_map(&chip8.keyboard, key);
                     if (vkey != -1)
                     {
                         chip8_keyboard_up(&chip8.keyboard, vkey);
@@ -72,7 +100,7 @@ int main (int argc, char** argv)
                 }
                 break;
 
-            }
+            };
         }
 
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -99,9 +127,8 @@ int main (int argc, char** argv)
 
         if (chip8.registers.delay_timer > 0)
         {
-            usleep(100);
+            usleep(1);
             chip8.registers.delay_timer -= 1;
-            printf("Delay!!!\n");
         }
 
         if (chip8.registers.sound_timer > 0)
@@ -110,6 +137,10 @@ int main (int argc, char** argv)
             fflush(stdout);
             chip8.registers.sound_timer -= 1;
         }
+
+        unsigned short opcode = chip8_memory_get_short(&chip8.memory , chip8.registers.PC);
+        chip8.registers.PC += 2;
+        chip8_exec (&chip8, opcode);
     }
 
 out:
